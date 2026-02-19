@@ -93,6 +93,7 @@ html, body {
 <script>
 let board = ["","","","","","","","",""];
 let gameActive = true;
+let playerTurn = true; // Flag to prevent fast-tap glitch
 
 const statusText = document.getElementById("status");
 const restartBtn = document.getElementById("restart");
@@ -104,18 +105,20 @@ const winConditions = [
 ];
 
 function playerMove(index){
-  if(board[index] !== "" || !gameActive) return;
+  if(board[index] !== "" || !gameActive || !playerTurn) return; // prevent fast taps
 
+  playerTurn = false; // disable further taps until computer moves
   makeMove(index, "X");
 
-  if(!gameActive) return; // if player wins, don't continue
+  if(!gameActive) return; // stop if player won
 
-  // Computer thinking for 2 seconds
+  // Computer thinking
   statusText.innerText = "Computer choosing...";
   setTimeout(() => {
     if(gameActive){
       computerMove();
       if(gameActive) statusText.innerText = "You choose";
+      playerTurn = true; // enable player input again
     }
   }, 2000);
 }
@@ -187,6 +190,7 @@ function findBestMove(){
 function restartGame(){
   board = ["","","","","","","","",""];
   gameActive = true;
+  playerTurn = true; // reset flag
   statusText.innerText = "You choose";
   restartBtn.style.display = "none";
 
