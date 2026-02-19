@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forehead Tic Tac Toe</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url('bg.jpg') center/cover no-repeat;
+  backdrop-filter: blur(6px);
+}
+
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+}
+
+.game-container {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 28px;
+  letter-spacing: 2px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 8px;
+  justify-content: center;
+}
+
+.cell {
+  background: rgba(255,255,255,0.15);
+  border-radius: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cell:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.status {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="game-container">
+  <h1>Tic Tac Toe on My Mind</h1>
+
+  <div class="board" id="board"></div>
+
+  <div class="status" id="status">Player X's Turn</div>
+  <button onclick="resetGame()">Restart</button>
+</div>
+
+<script>
+const board = document.getElementById("board");
+const statusText = document.getElementById("status");
+
+let currentPlayer = "X";
+let cells = Array(9).fill("");
+let gameActive = true;
+
+function createBoard() {
+  board.innerHTML = "";
+  cells.forEach((_, index) => {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.addEventListener("click", () => handleClick(index));
+    board.appendChild(cell);
+  });
+}
+
+function handleClick(index) {
+  if (cells[index] !== "" || !gameActive) return;
+
+  cells[index] = currentPlayer;
+  board.children[index].textContent = currentPlayer;
+
+  if (checkWinner()) {
+    statusText.textContent = `Player ${currentPlayer} Wins!`;
+    gameActive = false;
+    return;
+  }
+
+  if (!cells.includes("")) {
+    statusText.textContent = "Draw!";
+    gameActive = false;
+    return;
+  }
+
+  currentPlayer = currentPlayer === "X" ? "O" : "X";
+  statusText.textContent = `Player ${currentPlayer}'s Turn`;
+}
+
+function checkWinner() {
+  const winningCombos = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+
+  return winningCombos.some(combo => {
+    const [a,b,c] = combo;
+    return cells[a] && cells[a] === cells[b] && cells[a] === cells[c];
+  });
+}
+
+function resetGame() {
+  cells = Array(9).fill("");
+  currentPlayer = "X";
+  gameActive = true;
+  statusText.textContent = "Player X's Turn";
+  createBoard();
+}
+
+createBoard();
+</script>
+
+</body>
+</html>
