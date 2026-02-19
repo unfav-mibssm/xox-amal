@@ -1,8 +1,148 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0;background:black;color:white;font-size:30px;display:flex;justify-content:center;align-items:center;height:100vh;">
+<head>
+<meta name="viewport" content="width=980, initial-scale=1.0">
+<title>Forehead Game</title>
+
+<style>
+body{
+  margin:0;
+  overflow:hidden;
+  width:980px;
+  height:1662px;
+  background:url("bg.jpg") no-repeat;
+  background-size:100% 100%;
+  font-family:Arial, sans-serif;
+}
+
+#board{
+  position:relative;
+  width:980px;
+  height:1662px;
+}
+
+.cell{
+  position:absolute;
+  width:100px;
+  height:100px;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  font-size:60px;
+  font-weight:bold;
+  color:white;
+  cursor:pointer;
+  user-select:none;
+}
+
+.status{
+  position:absolute;
+  bottom:30px;
+  width:100%;
+  text-align:center;
+  color:white;
+  font-weight:bold;
+  font-size:30px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="board"></div>
+<div class="status" id="status">Your Turn</div>
+
 <script>
-document.write(window.innerWidth + " x " + window.innerHeight);
+const board = document.getElementById("board");
+const statusText = document.getElementById("status");
+
+let cells = Array(9).fill("");
+let gameActive = true;
+
+/* Final scaled positions for 980x1662 */
+const positions = [
+  {x:318, y:502},
+  {x:451, y:488},
+  {x:568, y:465},
+
+  {x:342, y:616},
+  {x:469, y:625},
+  {x:586, y:578},
+
+  {x:356, y:724},
+  {x:479, y:714},
+  {x:591, y:695}
+];
+
+function createBoard(){
+  board.innerHTML="";
+  cells.forEach((_, index)=>{
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.style.left = positions[index].x + "px";
+    cell.style.top  = positions[index].y + "px";
+    cell.addEventListener("click", ()=>handleClick(index));
+    board.appendChild(cell);
+  });
+}
+
+function handleClick(index){
+  if(cells[index] !== "" || !gameActive) return;
+  makeMove(index, "X");
+  if(gameActive){
+    statusText.textContent="Computer thinking...";
+    setTimeout(computerMove, 1000);
+  }
+}
+
+function makeMove(index, player){
+  cells[index] = player;
+  board.children[index].textContent = player;
+
+  if(checkWinner(player)){
+    statusText.textContent = player==="X" ? "You Win 😎" : "Computer Wins 🤖";
+    gameActive = false;
+    return;
+  }
+
+  if(!cells.includes("")){
+    statusText.textContent = "Draw!";
+    gameActive = false;
+    return;
+  }
+
+  if(player==="O"){
+    statusText.textContent="Your Turn";
+  }
+}
+
+function computerMove(){
+  let empty = cells
+    .map((v,i)=>v===""?i:null)
+    .filter(v=>v!==null);
+
+  if(empty.length===0) return;
+
+  let move = empty[Math.floor(Math.random()*empty.length)];
+  makeMove(move, "O");
+}
+
+function checkWinner(player){
+  const combos=[
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  return combos.some(combo =>
+    combo.every(i => cells[i] === player)
+  );
+}
+
+createBoard();
 </script>
+
 </body>
 </html>
