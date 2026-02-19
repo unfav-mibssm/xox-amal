@@ -2,177 +2,199 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forehead Game</title>
-
 <style>
-body{
-  margin:0;
-  overflow:hidden;
-  background:black;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  font-family:Arial, sans-serif;
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: black;
+  font-family: Arial, sans-serif;
 }
 
-.game{
-  position:relative;
-  height:100vh;
-  aspect-ratio:1080 / 1920;
-  max-width:100vw;
+.game {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: url("bg.jpg") no-repeat center center;
+  background-size: contain;
 }
 
-.game img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
+/* Cells */
+.cell {
+  position: absolute;
+  width: 10.18%;
+  height: 5.73%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6vw;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
 }
 
-#board{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
+/* Status Text */
+#status {
+  position: absolute;
+  top: 5%;
+  width: 100%;
+  text-align: center;
+  font-size: 5vw;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 0 10px black;
 }
 
-.cell{
-  position:absolute;
-  width:10.18%;   /* 110 / 1080 */
-  height:5.73%;   /* 110 / 1920 */
-
-  display:flex;
-  justify-content:center;
-  align-items:center;
-
-  font-size:6vw;
-  font-weight:bold;
-  color:white;
-  cursor:pointer;
-  user-select:none;
-}
-
-.ui{
-  position:absolute;
-  bottom:3%;
-  width:100%;
-  text-align:center;
-  color:white;
-}
-
-button{
-  margin-top:10px;
-  padding:8px 20px;
-  border:none;
-  border-radius:20px;
-  font-weight:bold;
-  cursor:pointer;
+/* Button */
+#restart {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 25px;
+  font-size: 16px;
+  border: none;
+  border-radius: 20px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  display: none;
+  cursor: pointer;
 }
 </style>
 </head>
-
 <body>
 
 <div class="game">
-  <img src="bg.jpg">
-  <div id="board"></div>
 
-  <div class="ui">
-    <div id="status">Your Turn</div>
-    <button onclick="resetGame()">Restart</button>
-  </div>
+<div id="status">You choose</div>
+
+<!-- Row 1 -->
+<div class="cell" style="left:32.5%; top:28.8%;" onclick="playerMove(0)"></div>
+<div class="cell" style="left:46.0%; top:28.0%;" onclick="playerMove(1)"></div>
+<div class="cell" style="left:57.9%; top:26.6%;" onclick="playerMove(2)"></div>
+
+<!-- Row 2 -->
+<div class="cell" style="left:34.9%; top:35.3%;" onclick="playerMove(3)"></div>
+<div class="cell" style="left:47.9%; top:35.8%;" onclick="playerMove(4)"></div>
+<div class="cell" style="left:59.8%; top:33.1%;" onclick="playerMove(5)"></div>
+
+<!-- Row 3 -->
+<div class="cell" style="left:36.4%; top:41.6%;" onclick="playerMove(6)"></div>
+<div class="cell" style="left:48.9%; top:41.0%;" onclick="playerMove(7)"></div>
+<div class="cell" style="left:60.4%; top:39.9%;" onclick="playerMove(8)"></div>
+
+<button id="restart" onclick="restartGame()">Play Again</button>
+
 </div>
 
 <script>
-const board = document.getElementById("board");
-const statusText = document.getElementById("status");
-
-let cells = Array(9).fill("");
+let board = ["","","","","","","","",""];
 let gameActive = true;
 
-/* Positions based on 1080x1920 original design converted to % */
-const positions = [
-  {x:32.5, y:28.8},
-  {x:46.0, y:28.0},
-  {x:57.9, y:26.6},
+const statusText = document.getElementById("status");
+const restartBtn = document.getElementById("restart");
 
-  {x:34.9, y:35.4},
-  {x:47.9, y:35.8},
-  {x:59.8, y:33.2},
-
-  {x:36.4, y:41.6},
-  {x:48.9, y:41.0},
-  {x:60.3, y:39.9}
+const winConditions = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
 ];
 
-function createBoard(){
-  board.innerHTML="";
-  cells.forEach((_, index)=>{
-    const cell=document.createElement("div");
-    cell.classList.add("cell");
-    cell.style.left = positions[index].x + "%";
-    cell.style.top  = positions[index].y + "%";
-    cell.addEventListener("click",()=>handleClick(index));
-    board.appendChild(cell);
-  });
-}
+function playerMove(index){
+  if(board[index] !== "" || !gameActive) return;
 
-function handleClick(index){
-  if(cells[index]!=="" || !gameActive) return;
-  makeMove(index,"X");
+  makeMove(index, "X");
 
-  if(gameActive){
-    statusText.textContent="Computer thinking...";
-    setTimeout(computerMove,1000);
-  }
-}
+  // If game ended after player move, don't call computer
+  if(!gameActive) return;
 
-function makeMove(index,player){
-  cells[index]=player;
-  board.children[index].textContent=player;
-
-  if(checkWinner(player)){
-    statusText.textContent = player==="X" ? "You Win 😎" : "Computer Wins 🤖";
-    gameActive=false;
-    return;
-  }
-
-  if(!cells.includes("")){
-    statusText.textContent="Draw!";
-    gameActive=false;
-    return;
-  }
-
-  if(player==="O"){
-    statusText.textContent="Your Turn";
-  }
+  // Show computer choosing for 2 seconds
+  statusText.innerText = "Computer choosing...";
+  setTimeout(() => {
+    if(gameActive){
+      computerMove();
+      if(gameActive) statusText.innerText = "You choose";
+    }
+  }, 2000);
 }
 
 function computerMove(){
-  let empty=cells.map((v,i)=>v===""?i:null).filter(v=>v!==null);
-  if(empty.length===0) return;
-  let move=empty[Math.floor(Math.random()*empty.length)];
-  makeMove(move,"O");
+  let bestMove = findBestMove();
+  if(bestMove !== -1){
+    makeMove(bestMove, "O");
+  }
 }
 
-function checkWinner(player){
-  const combos=[
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6]
-  ];
-  return combos.some(combo=>combo.every(i=>cells[i]===player));
+function makeMove(index, player){
+  board[index] = player;
+  document.getElementsByClassName("cell")[index].innerText = player;
+  checkWinner();
 }
 
-function resetGame(){
-  cells = Array(9).fill("");
+function checkWinner(){
+  for(let condition of winConditions){
+    const [a,b,c] = condition;
+    if(board[a] !== "" && board[a] === board[b] && board[a] === board[c]){
+      gameActive = false;
+      if(board[a] === "X"){
+        statusText.innerText = "You Win!";
+      } else {
+        statusText.innerText = "Computer Wins!";
+      }
+      restartBtn.style.display = "block";
+      return;
+    }
+  }
+
+  if(!board.includes("")){
+    gameActive = false;
+    statusText.innerText = "Draw!";
+    restartBtn.style.display = "block";
+  }
+}
+
+function findBestMove(){
+  // 1. Win if possible
+  for(let condition of winConditions){
+    let [a,b,c] = condition;
+    let line = [board[a], board[b], board[c]];
+    if(line.filter(v => v === "O").length === 2 && line.includes("")){
+      return condition[line.indexOf("")];
+    }
+  }
+
+  // 2. Block player
+  for(let condition of winConditions){
+    let [a,b,c] = condition;
+    let line = [board[a], board[b], board[c]];
+    if(line.filter(v => v === "X").length === 2 && line.includes("")){
+      return condition[line.indexOf("")];
+    }
+  }
+
+  // 3. Center
+  if(board[4] === "") return 4;
+
+  // 4. Random
+  let empty = board.map((v,i)=> v===""?i:null).filter(v=>v!==null);
+  if(empty.length === 0) return -1;
+
+  return empty[Math.floor(Math.random()*empty.length)];
+}
+
+function restartGame(){
+  board = ["","","","","","","","",""];
   gameActive = true;
-  statusText.textContent = "Your Turn";
-  createBoard();
+  statusText.innerText = "You choose";
+  restartBtn.style.display = "none";
+
+  let cells = document.getElementsByClassName("cell");
+  for(let i=0;i<cells.length;i++){
+    cells[i].innerText = "";
+  }
 }
 
-createBoard();
 </script>
 
 </body>
