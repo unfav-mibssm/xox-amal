@@ -46,10 +46,10 @@ html, body {
   text-shadow: 0 0 10px black;
 }
 
-/* Button */
+/* Play Again Button */
 #restart {
   position: absolute;
-  bottom: 5%;
+  bottom: 12%; /* moved higher for visibility */
   left: 50%;
   transform: translateX(-50%);
   padding: 12px 25px;
@@ -60,6 +60,8 @@ html, body {
   color: white;
   display: none;
   cursor: pointer;
+  z-index: 10;
+  min-width: 120px;
 }
 </style>
 </head>
@@ -106,10 +108,9 @@ function playerMove(index){
 
   makeMove(index, "X");
 
-  // If game ended after player move, don't call computer
-  if(!gameActive) return;
+  if(!gameActive) return; // if player wins, don't continue
 
-  // Show computer choosing for 2 seconds
+  // Computer thinking for 2 seconds
   statusText.innerText = "Computer choosing...";
   setTimeout(() => {
     if(gameActive){
@@ -173,10 +174,10 @@ function findBestMove(){
     }
   }
 
-  // 3. Center
+  // 3. Take center
   if(board[4] === "") return 4;
 
-  // 4. Random
+  // 4. Random move
   let empty = board.map((v,i)=> v===""?i:null).filter(v=>v!==null);
   if(empty.length === 0) return -1;
 
@@ -194,7 +195,6 @@ function restartGame(){
     cells[i].innerText = "";
   }
 }
-
 </script>
 
 </body>
